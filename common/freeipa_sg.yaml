@@ -1,0 +1,77 @@
+heat_template_version: 2015-10-15
+
+description: freeipa server required security rules.
+
+parameters:
+  source:
+    type: string
+    label: cidr
+    description: allowed source cidr
+
+resources:
+  freeipa_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: freeipa server required ports
+      name: freeipa-sg
+      rules:
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 53
+          port_range_max: 53
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 88
+          port_range_max: 88
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 389
+          port_range_max: 389
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 443
+          port_range_max: 443
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 464
+          port_range_max: 464
+        - remote_ip_prefix: { get_param: source }
+          protocol: tcp
+          port_range_min: 636
+          port_range_max: 636
+        - remote_ip_prefix: { get_param: source }
+          protocol: udp
+          port_range_min: 53
+          port_range_max: 53
+        - remote_ip_prefix: { get_param: source }
+          protocol: udp
+          port_range_min: 88
+          port_range_max: 88
+        - remote_ip_prefix: { get_param: source }
+          protocol: udp
+          port_range_min: 123
+          port_range_max: 123
+        - remote_ip_prefix: { get_param: source }
+          protocol: udp
+          port_range_min: 464
+          port_range_max: 464
+        - remote_mode: remote_group_id
+          protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - remote_mode: remote_group_id
+          protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+
+outputs:
+  freeipa-sg:
+    description: freeipa security group
+    value: { get_resource: freeipa_sg }
+  allowed-cidr:
+    description: allowed source network
+    value: { get_param: source }

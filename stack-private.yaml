@@ -1,0 +1,181 @@
+heat_template_version: 2015-10-15
+
+description: >
+   deploy private network, instance with floating ip,
+
+   <count> servers with private ip addresses and sg groups
+
+parameters:
+  name:
+    type: string
+    label: Name
+    description: Name prefix for stack objects.
+
+  az:
+    type: string
+    label: Availability Zone
+    description: Availability zone for instances.
+
+  key:
+    type: string
+    label: Key name
+    description: Key-pair for the instances.
+
+  count:
+    type: number
+    label: Instance Count
+    description: Number of private instances.
+
+  flavor:
+    type: string
+    label: Flavor
+    description: Flavor to be used for instances.
+
+  image:
+    type: string
+    label: Image
+    description: Image to be used for instances.
+
+  public_network:
+    type: string
+    label: Public network
+    description: Public network with floating IP addresses.
+
+  cidr:
+    type: string
+    label: CIDR
+    description: Network CIDR
+
+  gateway_ip:
+    type: string
+    label: Gateway
+    description: Gateway address on <cidr> network.
+
+  dhcp_start:
+    type: string
+    label: Allocation pool start
+    description: Dhcp pool start address
+
+  dhcp_end:
+    type: string
+    label: Allocation pool end
+    description: Dhcp pool end address
+
+  dns:
+    type: comma_delimited_list
+    label: DNS
+    description: DNS Servers
+    default: ['8.8.8.8', '8.8.4.4']
+
+  source:
+    type: comma_delimited_list
+    label: SG Sources
+    description: Source IP/cidr addresses
+
+  tcpports:
+    type: comma_delimited_list
+    label: SG TCP Ports
+    description: Allowed inbound tcp ports
+    default: "22"
+
+  udpports:
+    type: comma_delimited_list
+    label: SG UDP Ports
+    description: Allowed inbound udp ports
+    default: []
+
+
+resources:
+  suffix:
+    type: OS::Heat::RandomString
+    properties:
+      character_classes: [{'class': 'hexdigits', 'min': 8}]
+      length: 8
+
+  network:
+    type: common/private_net.yaml
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, { get_resource: suffix }]]
+      dns: { get_param: dns }
+      cidr: { get_param: cidr }
+      gateway_ip: { get_param: gateway_ip }
+      dhcp_start: { get_param: dhcp_start }
+      dhcp_end: { get_param: dhcp_end }
+      public_net: { get_param: public_network }
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, { get_resource: suffix }, 'server']]
+      key_name: { get_param: key }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      availability_zone: { get_param: az }
+      networks:
+        - port: { get_resource: server_port }
+
+  server_port:
+    type: OS::Neutron::Port
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, { get_resource: suffix }, 'port']]
+      network: { get_attr: [ network, network_id ] }
+      fixed_ips:
+        - subnet_id: { get_attr: [ network, subnet_id ] }
+      security_groups:
+        - { get_attr: [ security, local-sg ] }
+        - { get_attr: [ security, user-tcp-sg ] }
+        - { get_attr: [ security, user-udp-sg ] }
+
+  server_public:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: { get_param: public_network }
+      port_id: { get_resource: server_port }
+
+  servers:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name:
+            list_join: ['-', [{ get_param: name }, { get_resource: suffix }, 'inst', '%index%']]
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          key_name: { get_param: key }
+          availability_zone: { get_param: az }
+          networks:
+            - network: { get_attr: [ network, network_id ] }
+          security_groups:
+            - { get_attr: [ security, local-sg ] }
+
+  security:
+    type: common/private_sg.yaml
+    properties:
+      name:
+        list_join: ['-', [{ get_param: name }, { get_resource: suffix }]]
+      source: { get_param: source }
+      tcp_ports: { get_param: tcpports }
+      udp_ports: { get_param: udpports }
+
+
+outputs:
+  server_ip:
+    description: server address
+    value: { get_attr: [ server, first_address ] }
+  server_float:
+    description: floating address
+    value: { get_attr: [ server_public, floating_ip_address ] }
+  private_ips:
+    description: private instance addresses
+    value: { get_attr: [ servers, first_address ] }
+  network_id:
+    description: network uuid
+    value: { get_attr: [ network, network_id ] }
+  server_id:
+    description: server uuid
+    value: { get_resource: server }

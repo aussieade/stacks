@@ -1,0 +1,90 @@
+heat_template_version: 2015-10-15
+
+description: nested local and user security groups
+
+parameters:
+  name:
+    type: string
+    label: name
+    description: name prefix
+
+  source:
+    type: comma_delimited_list
+    label: cidr
+    description: allowed source cidr
+
+  tcp_ports:
+    type: comma_delimited_list
+    label: tcpports
+
+  udp_ports:
+    type: comma_delimited_list
+    label: udpports
+
+
+resources:
+  local_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: internal stack security group
+      name:
+        list_join: ['-', [{ get_param: name }, 'local-sg']]
+      rules:
+        - remote_mode: remote_group_id
+          protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+        - remote_mode: remote_group_id
+          protocol: udp
+          port_range_min: 1
+          port_range_max: 65535
+        - remote_mode: remote_group_id
+          protocol: icmp
+
+  user_tcp_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: external stack security group
+      name:
+        list_join: ['-', [{ get_param: name }, 'user-tcp-sg']]
+      rules:
+        repeat:
+          for_each:
+            <%port%>: { get_param: tcp_ports }
+            <%source%>: { get_param: source }
+          template:
+            protocol: tcp
+            port_range_min: <%port%>
+            port_range_max: <%port%>
+            remote_ip_prefix: <%source%>
+
+  user_udp_sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: external stack security group
+      name:
+        list_join: ['-', [{ get_param: name }, "user-udp-sg"]]
+      rules:
+        repeat:
+          for_each:
+            <%port%>: { get_param: udp_ports }
+            <%source%>: { get_param: source }
+          template:
+            protocol: udp
+            port_range_min: <%port%>
+            port_range_max: <%port%>
+            remote_ip_prefix: <%source%>
+     
+outputs:
+  local-sg:
+    description: local security group
+    value: { get_resource: local_sg }
+  user-tcp-sg:
+    description: user tcp security group
+    value: { get_resource: user_tcp_sg }
+  user-udp-sg:
+    description: user udp security group
+    value: { get_resource: user_udp_sg }
+  allowed-cidr:
+    description: allowed source network
+    value: { get_param: source }
