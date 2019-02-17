@@ -1,8 +1,9 @@
+parameter_defaults:
+  key: ade-magrathea
+  image: 7bef93eb-1abd-4b5f-9c62-55cdb6abe518
+  net_id: f15b5a9e-72da-4549-9adc-c1af28b4a11a
+  flavor: m1.tiny
 parameters:
   name: prov-lab
   az: nova
   count: 1
-  key: <key-name>
-  flavor: m1.small
-  image: 44d7a971-fb00-4d01-af5a-b7c8c0709170
-  net_id: 6c8c0c4d-3d13-4d2f-8b78-34f7b57b5fe7

@@ -1,11 +1,13 @@
-parameters:
+parameter_defaults:
   name: priv-lab
-  az: nova
-  key: <key-name>
+  key: ade-magrathea
+  flavor: m1.tiny
+  image: ubuntu-16.04
+  public_network: provider
   count: 2
-  flavor: m1.small
-  image: 44d7a971-fb00-4d01-af5a-b7c8c0709170
-  public_network: 6c8c0c4d-3d13-4d2f-8b78-34f7b57b5fe7
+
+parameters:
+  az: nova
   cidr: 10.10.8.0/24
   gateway_ip: 10.10.8.1
   dhcp_start: 10.10.8.51
