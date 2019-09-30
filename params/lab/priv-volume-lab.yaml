@@ -1,16 +1,18 @@
-parameters:
+parameter_defaults:
   name: priv-vol-lab
-  az: nova
-  key: <key-name>
+  key: ade-magrathea
   count: 2
   flavor: m1.small
-  image: 44d7a971-fb00-4d01-af5a-b7c8c0709170
+  image: ubunut-18.04
   volume: 7abc6571-b771-403e-b241-d4ded1e34041
-  public_network: 6c8c0c4d-3d13-4d2f-8b78-34f7b57b5fe7
+  public_network: public
+
+parameters:
+  az: nova
   cidr: 10.10.8.0/24
   gateway_ip: 10.10.8.1
   dhcp_start: 10.10.8.51
   dhcp_end: 10.10.8.249
-  dns: ['172.16.0.254']
+  dns: ['192.168.1.254']
   source: ['172.16.0.0/24','192.168.1.0/24']
   tcpports: ['22','3306']
