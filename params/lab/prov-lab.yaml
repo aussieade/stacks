@@ -3,7 +3,6 @@ parameter_defaults:
   image: ubuntu-18.04
   net_id: a15291be-54e7-49f1-9082-35a0549cc4c8
   flavor: m1.small
-parameters:
   name: prov-lab
   az: nova
   count: 1

@@ -5,13 +5,11 @@ parameter_defaults:
   image: ubuntu-18.04
   public_network: public
   count: 2
-
-parameters:
   az: nova
+  dns: ['192.168.1.254']
+  source: ['172.16.0.0/24','192.168.1.0/24','192.168.2.0/24']
+  tcpports: ['22','3306']
   cidr: 10.10.8.0/24
   gateway_ip: 10.10.8.1
   dhcp_start: 10.10.8.51
   dhcp_end: 10.10.8.249
-  dns: ['192.168.1.254']
-  source: ['172.16.0.0/24','192.168.1.0/24']
-  tcpports: ['22','3306']
