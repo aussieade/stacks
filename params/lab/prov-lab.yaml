@@ -1,7 +1,7 @@
 parameter_defaults:
-  key: ade-magrathea
+  key: lab-key
   image: ubuntu-18.04
-  net_id: a15291be-54e7-49f1-9082-35a0549cc4c8
+  net_id: c2ef836d-6079-4531-9bd4-29337f307af1
   flavor: m1.small
   name: prov-lab
   az: nova

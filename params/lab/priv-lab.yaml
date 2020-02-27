@@ -1,6 +1,6 @@
 parameter_defaults:
   name: priv-lab
-  key: ade-magrathea
+  key: lab-key
   flavor: m1.small
   image: ubuntu-18.04
   public_network: public
